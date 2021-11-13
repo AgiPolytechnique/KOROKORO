@@ -20,6 +20,13 @@ class GameLogis:
                 gain = []
         return gain
 
+    def GameFinish(self, map, player):
+        for i in range(len(map)):
+            for j in range(len(map[0])):
+                if len(self.Logics(i, j, map, player)) > 0:
+                    return False
+        return True
+
     def Possibiliter(self, n, m, map, player):
         possibiliter = []
         nx, mx = len(map), len(map[0])

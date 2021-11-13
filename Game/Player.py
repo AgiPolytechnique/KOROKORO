@@ -1,4 +1,5 @@
 import random
+import time
 
 from GameLogics import gameLogics
 
@@ -37,6 +38,11 @@ class Entity:
     def GetActive(self):
         return self.textureName[self.activeTexture]
 
+    def GetItem(self, index):
+        if 0 <= index < len(self.textureName):
+            return self.textureName[index]
+        return None
+
 class Grid(Entity):
     def __init__(self):
         super(Grid, self).__init__()
@@ -47,6 +53,11 @@ class Player(Entity):
         self.adversaire = adversaire
 
         self.quantiter = 0
+        self.nom_coup = 0
+
+    def Reset(self):
+        self.quantiter = 0
+        self.nom_coup = 0
 
     def SetAdversair(self, adversaire):
         self.adversaire = adversaire
@@ -74,6 +85,9 @@ class IA(Player):
         self.playPosition = [None, None]
 
         self.possibiliter = []
+
+    def SetProfondeur(self, profondeur):
+        self.profondeur = profondeur
 
     def AddPossibiliter(self, x, y):
         self.possibiliter.append([x, y])
@@ -119,4 +133,5 @@ class IA(Player):
                 if max_ < evaluation or (max_ == evaluation and random.randint(1, 100) < 50):
                     max_ = evaluation
                     colone, ligne = j, i
+        self.nom_coup += 1
         return [ligne, colone]

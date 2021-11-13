@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 
+from Levels import Level
 from Manager import textureManager
 from Menu import MenuPrincipal
 
@@ -28,9 +29,9 @@ class Game:
         # load texture
         textureManager.LoadFromFile("data/textures/textures.txt")
 
-        '''self.background_sound = pygame.mixer.music.load("datas/audio/musics/background_music.mp3")
+        self.background_sound = pygame.mixer.music.load("data/audio/musics/AUD-20211108-WA0013.mp3")
         pygame.mixer.music.set_volume(0.3)
-        pygame.mixer.music.play(-1)'''
+        pygame.mixer.music.play(-1)
 
         MenuPrincipal(self)
 
@@ -47,6 +48,18 @@ class Game:
         if name in self.scenes:
             return self.scenes[name]
         return None
+
+    def NewLevel(self, level):
+        p1 = level.player_one
+        p2 = level.player_two
+        g = level.grid
+        r = level.racio
+        l = len(level.map)
+        c = len(level.map[0])
+        self.RemoveScene("LEVEL")
+        Level(self, p1, p2, g, r, ligne=l, colone=c)
+        #self.GetScene("LEVEL").ScreenUpdate(r)
+        self.SetActiveScene("LEVEL")
 
     def RemoveScene(self, name):
         if name in self.scenes:

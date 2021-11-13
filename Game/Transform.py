@@ -53,11 +53,11 @@ class Transform:
     def __Scale(self, origine):
         self.size = [self.size[0]*self.scale[0], self.size[1]*self.scale[1]]
 
-        self.position[0] = self.position[0] * self.scale[0] + (1 - self.scale[0])*origine[0]
-        self.position[1] = self.position[1] * self.scale[1] + (1 - self.scale[1])*origine[1]
+        self.position[0] = (self.position[0] * self.scale[0]) + ((1 - self.scale[0])*origine[0])
+        self.position[1] = (self.position[1] * self.scale[1]) + ((1 - self.scale[1])*origine[1])
         
-        self.origine[0] = self.origine[0] * self.scale[0] + (1 - self.scale[0]) * origine[0]
-        self.origine[1] = self.origine[1] * self.scale[1] + (1 - self.scale[1]) * origine[1]
+        self.origine[0] = (self.origine[0] * self.scale[0]) + ((1 - self.scale[0]) * origine[0])
+        self.origine[1] = (self.origine[1] * self.scale[1]) + ((1 - self.scale[1]) * origine[1])
 
     def Rotation(self, a, ox = None, oy = None):
         self.rotation += a

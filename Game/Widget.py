@@ -35,11 +35,16 @@ class Bouton(Widget):
         self.transform.SetSize(w, h)
         self.__Actual(self.actuel[0])
 
+    def GetSize(self):
+        return self.transform.GetSize()
+
     def Scale(self, sx, sy, ox, oy):
         self.transform.Scale(sx, sy, ox, oy)
         self.__Actual(self.actuel[0])
 
     def SetScale(self, sx, sy):
+        #self.transform.size[0] *= sx
+        #self.transform.size[1] *= sy
         self.transform.SetScale(sx, sy)
         self.__Actual(self.actuel[0])
 
@@ -94,11 +99,17 @@ class Text(Widget):
         self.color = color
         self.font = pygame.font.SysFont(self.police_name, self.police_size)
         self.textImg = self.font.render(self.text, True, color)
-        self.textDraw = self.font.render(self.text, True, color)
+        self.scale = [1, 1]
+        self.transform.size = [self.textImg.get_size()[0] * self.scale[0], self.textImg.get_size()[1] * self.scale[0]]
+        self.textDraw = pygame.transform.smoothscale(self.textImg,
+                                                     (int(self.transform.size[0]), int(self.transform.size[1])))
 
     def SetText(self, text):
         self.text = text
         self.textImg = self.font.render(self.text, True, self.color)
+        self.transform.size = [self.textImg.get_size()[0] * self.scale[0], self.textImg.get_size()[1] * self.scale[0]]
+        self.textDraw = pygame.transform.smoothscale(self.textImg,
+                                                     (int(self.transform.size[0]), int(self.transform.size[1])))
 
     def SetFont(self, name=None, size=None):
         if size != None:
@@ -107,18 +118,30 @@ class Text(Widget):
             self.police_name = name
         self.font = pygame.font.SysFont(self.police_name, self.police_size)
         self.textImg = self.font.render(self.text, True, self.color)
+        self.transform.size = [self.textImg.get_size()[0] * self.scale[0], self.textImg.get_size()[1] * self.scale[0]]
+        self.textDraw = pygame.transform.smoothscale(self.textImg,
+                                                     (int(self.transform.size[0]), int(self.transform.size[1])))
 
     def SetColor(self, color):
         self.color = color
         self.textImg = self.font.render(self.text, True, self.color)
+        self.transform.size = [self.textImg.get_size()[0] * self.scale[0], self.textImg.get_size()[1] * self.scale[0]]
+        self.textDraw = pygame.transform.smoothscale(self.textImg,
+                                                     (int(self.transform.size[0]), int(self.transform.size[1])))
 
     def Render(self, game):
         x, y = self.transform.position[0], self.transform.position[1]
         w, h = self.transform.size[0], self.transform.size[1]
         game.screen.blit(self.textDraw, (x, y, w, h))
 
-    def SetScale(self, sx, sy):
+    def SetScale2(self, sx, sy):
+        self.scale[0] *= sx
+        self.scale[1] *= sy
         self.transform.size[0] *= sx
         self.transform.size[1] *= sy
 
         self.textDraw = pygame.transform.smoothscale(self.textImg, (int(self.transform.size[0]), int(self.transform.size[1])))
+
+    def Reset(self):
+        self.textDraw = pygame.transform.smoothscale(self.textImg,
+                                                     (int(self.transform.size[0]), int(self.transform.size[1])))

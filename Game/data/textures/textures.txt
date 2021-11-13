@@ -1,8 +1,39 @@
 bg_bouche[[[*]]]data/textures/bg/BGBouche.png
+bg_bouche2[[[*]]]data/textures/bg/BGBouche2.jpg
 bg_mp[[[*]]]data/textures/bg/Background.jpg
 titleKoro[[[*]]]data/textures/bg/Korokoro.png
 titleMenuPrincipal[[[*]]]data/textures/bg/MenuPrincipal.png
 copyright[[[*]]]data/textures/bg/Copyright.png
+
+# Menu Nouveau Jeu
+gameSolo[[[*]]]data/textures/MenuNouveauJeu/01.png
+gameSoloHover[[[*]]]data/textures/MenuNouveauJeu/01actif.png
+gameMulti[[[*]]]data/textures/MenuNouveauJeu/02.png
+gameMultiHover[[[*]]]data/textures/MenuNouveauJeu/02actif.png
+gameNouveauChoice[[[*]]]data/textures/MenuNouveauJeu/Nouvelle partie.png
+
+# Menu Difficulter
+gameFacile[[[*]]]data/textures/MenuDifficulter/Facile.png
+gameFacileHover[[[*]]]data/textures/MenuDifficulter/FacileActif.png
+gameMoyen[[[*]]]data/textures/MenuDifficulter/Moyen.png
+gameMoyenHover[[[*]]]data/textures/MenuDifficulter/MoyenActif.png
+gameDifficile[[[*]]]data/textures/MenuDifficulter/Diff.png
+gameDifficileHover[[[*]]]data/textures/MenuDifficulter/DiffActif.png
+gameDifficulter[[[*]]]data/textures/MenuDifficulter/NIVeu.png
+
+# choix virus
+gameVirusBulbe[[[*]]]data/textures/MenuVirusChoice/Bulbe.png
+gameVirusBulbeHover[[[*]]]data/textures/MenuVirusChoice/BulbeActiver.png
+gameVirusEtoile[[[*]]]data/textures/MenuVirusChoice/Etoile.png
+gameVirusEtoileHover[[[*]]]data/textures/MenuVirusChoice/EtoileActiver.png
+gameVirus[[[*]]]data/textures/MenuVirusChoice/choixdesvirus.png
+
+# menu jeux
+playerCircle[[[*]]]data/textures/MenuJeu/CercleIntercafe.png
+playerOneTitle[[[*]]]data/textures/MenuJeu/Joueur01Interface.png
+playerTwoTitle[[[*]]]data/textures/MenuJeu/Joueur02Interface.png
+Nbredecoups[[[*]]]data/textures/MenuJeu/Nbredecoups.png
+Score[[[*]]]data/textures/MenuJeu/Score.png
 
 boutonHelpNormal[[[*]]]data/textures/boutons/HelpNormal.png
 boutonHelpSurvol[[[*]]]data/textures/boutons/HelpActiver.png
@@ -33,6 +64,8 @@ resumeHover[[[*]]]data/textures/boutons/ResumeSurvol.png
 
 carreauVerClaire[[[*]]]data/textures/grid/carreauVerClaire.png
 carreauVerSombre[[[*]]]data/textures/grid/carreauVerSombre.png
+carreau_rouge_claire[[[*]]]data/textures/grid/carreau_rouge_claire.png
+carreau_rouge_sombre[[[*]]]data/textures/grid/carreau_rouge_sombre.png
 
 virusVert[[[*]]]data/textures/virus/virusVert.png
 virusOrange[[[*]]]data/textures/virus/virusOrange.png
