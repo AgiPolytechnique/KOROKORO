@@ -48,26 +48,18 @@ class Level(Scene):
 
         if self.player_one != None:
             self.map[0][0] = self.map[ligne - 1][colone - 1] = self.player_one.GetId()
-            if issubclass(type(self.player_one), IA):
-                self.player_one.AddPossibiliter(0, 1)
-                self.player_one.AddPossibiliter(1, 0)
-                self.player_one.AddPossibiliter(1, 1)
-                self.player_one.AddPossibiliter(ligne - 2, colone - 2)
-                self.player_one.AddPossibiliter(ligne - 1, colone - 2)
-                self.player_one.AddPossibiliter(ligne - 2, colone - 1)
+            self.player_one.AddPossibilityArray([[0, 1], [1, 0], [1, 1],
+                                                 [ligne - 2, colone - 2], [ligne - 1, colone - 2],
+                                                 [ligne - 2, colone - 1]])
             self.player_one.quantiter = 2
             self.scorePlayerOne.SetText(f"{self.player_one.quantiter}")
         if self.player_two != None:
             self.map[0][colone - 1] = self.map[ligne - 1][0] = self.player_two.GetId()
+            self.player_two.AddPossibilityArray([[0, colone-2], [1, colone-2], [1, colone-1],
+                                                 [ligne - 2, 0], [ligne - 1, 1],
+                                                 [ligne - 2, 1]])
             self.player_two.quantiter = 2
             self.scorePlayerTwo.SetText(f"{self.player_one.quantiter}")
-            if issubclass(type(self.player_two), IA):
-                self.player_two.AddPossibiliter(0, 1)
-                self.player_two.AddPossibiliter(1, 0)
-                self.player_two.AddPossibiliter(1, 1)
-                self.player_two.AddPossibiliter(ligne - 2, colone - 2)
-                self.player_two.AddPossibiliter(ligne - 1, colone - 2)
-                self.player_two.AddPossibiliter(ligne - 2, colone - 1)
 
         self.gridPosition = [(self.racio[0] - ligne * self.size_grid_x)/2, (self.racio[1] - colone * self.size_grid_y)/2]
 
@@ -75,6 +67,8 @@ class Level(Scene):
         self.sound_game_win = pygame.mixer.Sound('data/audio/bruitage/game_win.mp3')
         self.sound_game_not_validate = pygame.mixer.Sound('data/audio/bruitage/jeu_non_valide.mp3')
         self.sound_game_tchop = pygame.mixer.Sound('data/audio/bruitage/manger.mp3')
+
+        self.next_player = False
 
     def EventInput(self, event):
         if event.type == VIDEORESIZE:
@@ -90,38 +84,10 @@ class Level(Scene):
         if self.isFinish == False:
             if issubclass(type(self.actualPlayer), Human):
                 if event.type == MOUSEBUTTONDOWN:
-                    i = (event.pos[0] - self.gridPosition[0])//self.size_grid_x
-                    j = (event.pos[1] - self.gridPosition[1])//self.size_grid_y
-
-                    gain = gameLogics.Logics(int(j), int(i), self.map, self.actualPlayer)
-
-                    self.actualPlayer.nom_coup += 1
-                    if self.actualPlayer.GetId() == self.player_one.GetId():
-                        self.coupPlayerOne.SetText(f"{self.actualPlayer.nom_coup}")
-                    elif self.actualPlayer.GetId() == self.player_two.GetId():
-                        self.coupPlayerTwo.SetText(f"{self.actualPlayer.nom_coup}")
-
-                    if len(gain) > 0:
-                        if len(gain) - 1 > 0:
-                            self.sound_game_tchop.play()
-                        #print(self.actualPlayer.quantiter)
-                        for g in gain:
-                            self.map[g[0]][g[1]] = self.actualPlayer.GetId()
-
-                        self.actualPlayer.AddQuantiter(len(gain))
-                        self.actualPlayer.GetAdversaire().AddQuantiter(1 - len(gain))
-
-                        self.scorePlayerOne.SetText(f"{self.player_one.quantiter}")
-                        self.scorePlayerTwo.SetText(f"{self.player_two.quantiter}")
-
-                        #print(f"{self.player_one.quantiter}",f"{self.player_two.quantiter}")
-
-                        self.actualPlayer = self.actualPlayer.GetAdversaire()
-
-                        self.GameFinish()
-                    else:
-                        if self.isFinish == False:
-                            self.sound_game_not_validate.play()
+                    j = (event.pos[0] - self.gridPosition[0])//self.size_grid_x
+                    i = (event.pos[1] - self.gridPosition[1])//self.size_grid_y
+                    self.Play(i, j)
+                    self.next_player = True
         else:
             if event.type == KEYDOWN:
                 if event.key == K_r:
@@ -162,7 +128,7 @@ class Level(Scene):
         self.coupPlayerTwo.SetScale2(sx, sy)
 
     def GameFinish(self):
-        if gameLogics.GameFinish(self.map, self.actualPlayer):
+        if gameLogics.GameFinish(self.map, self.actualPlayer, self.grid):
             pygame.mixer.music.stop()
             self.isFinish = True
             if issubclass(type(self.actualPlayer), Human) and issubclass(type(self.actualPlayer.GetAdversaire()), IA):
@@ -171,43 +137,66 @@ class Level(Scene):
                 self.sound_game_win.play()
             pygame.mixer.music.play()
 
+    def Play(self, i, j):
+        gain = gameLogics.Logics(int(i), int(j), self.map, self.actualPlayer, self.grid)
+
+        if gain != [] and len(gain[0]) > 0:
+            if len(gain[0]) - 1 > 0:
+                self.sound_game_tchop.play()
+            for g in gain[0]:
+                self.map[g[0]][g[1]] = self.actualPlayer.GetId()
+            retirer = []
+            for p in gain[1]:
+                if p in self.actualPlayer.GetAdversaire().possibiliter:
+                    r = True
+                    for i in range(p[0] - 1, p[0] + 2):
+                        for j in range(p[1] - 1, p[1] + 2):
+                            if 0 <= i < len(self.map) and 0 <= j < len(self.map[0]):
+                                if self.map[i][j] == self.actualPlayer.GetAdversaire().GetId():
+                                    r = False
+                                    break
+                    if r and not (p in retirer):
+                        retirer.append(p)
+
+            self.actualPlayer.quantiter += len(gain[0])
+            self.actualPlayer.AddPossibilityArray(gain[1])
+            self.actualPlayer.RemovePossibilityArray(gain[0])
+
+            self.actualPlayer.GetAdversaire().quantiter -= (len(gain[0]) - 1)
+            self.actualPlayer.GetAdversaire().RemovePossibilityArray(retirer)
+
+            self.Possibiliter()
+            self.Score()
+            self.GameFinish()
+            self.actualPlayer = self.actualPlayer.GetAdversaire()
+        else:
+            if self.isFinish == False:
+                self.sound_game_not_validate.play()
+
     def Update(self, dt):
         if self.isFinish == False:
-            if issubclass(type(self.actualPlayer), IA):
+            if issubclass(type(self.actualPlayer), IA) and self.next_player != True:
                 if self.actualPlayer.flex_state == "begin":
-                    self.actualPlayer.Play(self.map)
+                    self.actualPlayer.Play(self.map, self.grid)
                 elif self.actualPlayer.flex_state == "finish":
                     self.actualPlayer.flex_state = "begin"
-                    gain = gameLogics.Logics(int(self.actualPlayer.playPosition[0]), int(self.actualPlayer.playPosition[1]), self.map, self.actualPlayer)
+                    time.sleep(1)
+                    self.Play(int(self.actualPlayer.playPosition[0]), int(self.actualPlayer.playPosition[1]))
+    def Score(self):
+        if self.actualPlayer.GetId() == self.player_one.GetId():
+            self.scorePlayerOne.SetText(f"{self.actualPlayer.quantiter}")
+            self.scorePlayerTwo.SetText(f"{self.actualPlayer.GetAdversaire().quantiter}")
+        elif self.actualPlayer.GetId() == self.player_two.GetId():
+            self.scorePlayerTwo.SetText(f"{self.actualPlayer.quantiter}")
+            self.scorePlayerOne.SetText(f"{self.actualPlayer.GetAdversaire().quantiter}")
 
-                    self.actualPlayer.nom_coup += 1
-                    if self.actualPlayer.GetId() == self.player_one.GetId():
-                        self.coupPlayerOne.SetText(f"{self.actualPlayer.nom_coup}")
-                    elif self.actualPlayer.GetId() == self.player_two.GetId():
-                        self.coupPlayerTwo.SetText(f"{self.actualPlayer.nom_coup}")
-
-                    if len(gain) > 0:
-                        if len(gain) - 1 > 0:
-                            self.sound_game_tchop.play()
-                        self.actualPlayer.AddQuantiter(len(gain))
-                        #print(self.actualPlayer.quantiter)
-                        for g in gain:
-                            self.map[g[0]][g[1]] = self.actualPlayer.GetId()
-                        time.sleep(1)
-                        self.actualPlayer = self.actualPlayer.GetAdversaire()
-                        self.actualPlayer.AddQuantiter(1 - len(gain))
-
-                        self.GameFinish()
-
-                        if self.actualPlayer.GetId() == self.player_one.GetId():
-                            self.scorePlayerOne.SetText(f"{self.actualPlayer.quantiter}")
-                            self.scorePlayerTwo.SetText(f"{self.actualPlayer.GetAdversaire().quantiter}")
-                        elif self.actualPlayer.GetId() == self.player_two.GetId():
-                            self.scorePlayerTwo.SetText(f"{self.actualPlayer.quantiter}")
-                            self.scorePlayerOne.SetText(f"{self.actualPlayer.GetAdversaire().quantiter}")
-                    else:
-                        if self.isFinish == False:
-                            self.sound_game_not_validate.play()
+    def Possibiliter(self):
+        if self.actualPlayer.GetId() == self.player_one.GetId():
+            self.coupPlayerOne.SetText(f"{len(self.actualPlayer.possibiliter)}")
+            self.coupPlayerTwo.SetText(f"{len(self.actualPlayer.GetAdversaire().possibiliter)}")
+        elif self.actualPlayer.GetId() == self.player_two.GetId():
+            self.coupPlayerTwo.SetText(f"{len(self.actualPlayer.possibiliter)}")
+            self.coupPlayerOne.SetText(f"{len(self.actualPlayer.GetAdversaire().possibiliter)}")
 
     def Render(self):
         self.background.Render(self.game)
@@ -285,3 +274,6 @@ class Level(Scene):
                     texture = pygame.transform.smoothscale(texture, (int(self.size_grid_x - 4), int(self.size_grid_y - 4)))
 
                     self.game.screen.blit(texture, (xg + 2, yg + 2, self.size_grid_x, self.size_grid_y))
+
+        if self.next_player == True and issubclass(type(self.actualPlayer), IA):
+            self.next_player = False

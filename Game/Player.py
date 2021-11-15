@@ -54,6 +54,27 @@ class Player(Entity):
 
         self.quantiter = 0
         self.nom_coup = 0
+        self.possibiliter = []
+
+    def AddPossibility(self, possibility):
+        if possibility in self.possibiliter:
+            return
+        self.possibiliter.append(possibility)
+
+    def RemovePossibility(self, possibility):
+        if possibility in self.possibiliter:
+            self.possibiliter.remove(possibility)
+
+    def RemovePossibilityArray(self, possibility):
+        for p in possibility:
+            self.RemovePossibility(p)
+
+    def AddPossibilityArray(self, array):
+        for p in array:
+            self.AddPossibility(p)
+
+    def GetPossibilityCopy(self):
+        return self.possibiliter.copy()
 
     def Reset(self):
         self.quantiter = 0
@@ -84,24 +105,12 @@ class IA(Player):
 
         self.playPosition = [None, None]
 
-        self.possibiliter = []
-
     def SetProfondeur(self, profondeur):
         self.profondeur = profondeur
 
-    def AddPossibiliter(self, x, y):
-        self.possibiliter.append([x, y])
-
-    def AddPossibiliterArray(self, array):
-        for p in array:
-            self.AddPossibiliter(p[0], p[1])
-
-    def RemovePossibiliter(self, x, y):
-        if [x, y] in self.possibiliter:
-            self.possibiliter.remove([x, y])
-
-    def FonctionEvaluation(self, map, profondeur, maximise, i, j):
-        return len(gameLogics.Logics(i, j, map, self))
+    def FonctionEvaluation(self, map, profondeur, maximise, i, j, grid):
+        gain = gameLogics.Logics(i, j, map, self, grid)
+        return len(gain[0]) if gain != [] else 0
 
     def PlusInfini(self):
         return 1000
@@ -109,29 +118,25 @@ class IA(Player):
     def MoinInfini(self):
         return -1000
 
-    def Play(self, map):
-        self.playPosition = self.glouton(map)
+    def Play(self, map, grid):
+        self.playPosition = self.glouton(map, grid)
         self.flex_state = "finish"
 
-    def glouton(self, map):
+    def glouton(self, map, grid):
         max_ = self.MoinInfini()
 
         ligne, colone = -1, -1
-        '''for pos in self.possibiliter:
-            if 0 <= pos[0] < len(map) and 0 <= pos[1] < len(map[0]):
-                m = map.copy()
-                evaluation = self.FonctionEvaluation(map, 0, True, pos[0], pos[1])
-                map = m
-                if max_ < evaluation or (max_ == evaluation and random.randint(1, 100) < 50):
-                    max_ = evaluation
-                    colone, ligne = pos[1], pos[0]'''
         for i in range(len(map)):
             for j in range(len(map[0])):
                 m = map.copy()
-                evaluation = self.FonctionEvaluation(map, 0, True, i, j)
+                evaluation = self.FonctionEvaluation(map, 0, True, i, j, grid)
                 map = m
                 if max_ < evaluation or (max_ == evaluation and random.randint(1, 100) < 50):
                     max_ = evaluation
-                    colone, ligne = j, i
-        self.nom_coup += 1
+                    ligne = i
+                    colone = j
         return [ligne, colone]
+
+    def minimax(self, node, depth, maximizingPlayer):
+        if depth == 0 or len(node) <= 0:
+            return
