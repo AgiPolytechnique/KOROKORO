@@ -1,7 +1,9 @@
 import random
 import time
 
-from GameLogics import gameLogics
+import pygame
+
+from GameLogics import gameLogics, DecisionMiniMax
 
 
 class Entity:
@@ -119,7 +121,11 @@ class IA(Player):
         return -1000
 
     def Play(self, map, grid):
-        self.playPosition = self.glouton(map, grid)
+        begin_time = pygame.time.get_ticks()
+        self.playPosition = DecisionMiniMax(map, self, self.profondeur, grid)
+        end_time = pygame.time.get_ticks()
+        print("times reflexion : ", end_time - begin_time)
+        #self.playPosition = self.glouton(map, grid)
         self.flex_state = "finish"
 
     def glouton(self, map, grid):

@@ -16,25 +16,30 @@ class Level(Scene):
         super(Level, self).__init__(game, "LEVEL")
         self.racio = [racio[0], racio[1]]
 
+        sx = self.racio[0] / self.game.size[0]
+        sy = self.racio[1] / self.game.size[1]
+
         self.player_one = playerOne
         self.player_two = playerTwo
+        self.human_and_ia = (issubclass(type(playerOne), Human) and issubclass(type(playerTwo), IA))\
+                        or (issubclass(type(playerOne), Human) and issubclass(type(playerTwo), IA))
         self.grid = grid
 
         self.actualPlayer = self.player_one
 
         #self.background = Background("bg_bouche2")
         self.background = Background("bg_mp")
-        self.player_view_one = [75, 20, 75, 75]
-        self.player_view_title = [75, 20, 160*0.55, 45*0.55]
-        self.player_view_nbc = [75, 20, 107*0.6, 22*0.6]
-        self.player_view_score = [75, 20, 61*0.6, 29*0.6]
-        self.view_virus_size = [45, 45]
+        self.player_view_one = [75, 20, 75*sx, 75*sy]
+        self.player_view_title = [75, 20, 160*0.55*sx, 45*0.55*sy]
+        self.player_view_nbc = [75, 20, 107*0.6*sx, 22*0.6*sy]
+        self.player_view_score = [75, 20, 61*0.6*sx, 29*0.6*sy]
+        self.view_virus_size = [45*sx, 45*sy]
 
         ligne = param["ligne"] if "ligne" in param else 7
         colone = param["colone"] if "colone" in param else 7
 
-        self.size_grid_x = 56 * 7 * (self.racio[0] / self.game.size[0]) // ligne
-        self.size_grid_y = 56 * 7 * (self.racio[1] / self.game.size[1]) // colone
+        self.size_grid_x = 56 * 7 * (sx) // ligne
+        self.size_grid_y = 56 * 7 * (sy) // colone
 
         self.map = np.full(shape=(ligne,colone),fill_value=0 if self.grid == None else self.grid.GetId())
 
@@ -43,6 +48,16 @@ class Level(Scene):
 
         self.coupPlayerOne = Text("0", 25, (255, 255, 255))
         self.coupPlayerTwo = Text("0", 25, (255, 255, 255))
+
+        self.winner_text = Text("", 25, (255, 255, 255))
+
+        self.scorePlayerOne.SetScale2(sx, sy)
+        self.scorePlayerTwo.SetScale2(sx, sy)
+
+        self.coupPlayerOne.SetScale2(sx, sy)
+        self.coupPlayerTwo.SetScale2(sx, sy)
+
+        self.winner_text.SetScale2(sx, sy)
 
         self.isFinish = False
 
@@ -69,6 +84,12 @@ class Level(Scene):
         self.sound_game_tchop = pygame.mixer.Sound('data/audio/bruitage/manger.mp3')
 
         self.next_player = False
+
+        self.Avantage()
+
+        self.play_position = [None, None]
+
+        #self.ScreenUpdate([racio[0], racio[1]])
 
     def EventInput(self, event):
         if event.type == VIDEORESIZE:
@@ -131,13 +152,45 @@ class Level(Scene):
         if gameLogics.GameFinish(self.map, self.actualPlayer, self.grid):
             pygame.mixer.music.stop()
             self.isFinish = True
-            if issubclass(type(self.actualPlayer), Human) and issubclass(type(self.actualPlayer.GetAdversaire()), IA):
-                self.sound_game_over.play()
-            elif issubclass(type(self.actualPlayer), IA) and issubclass(type(self.actualPlayer.GetAdversaire()), Human):
-                self.sound_game_win.play()
+            self.SetWinner()
+
+            if self.human_and_ia:
+                if issubclass(type(self.actualPlayer), Human):
+                    win = self.actualPlayer.quantiter >= self.actualPlayer.GetAdversaire().quantiter
+                else:
+                    win = self.actualPlayer.quantiter <= self.actualPlayer.GetAdversaire().quantiter
+
+                if win:
+                    self.sound_game_win.play()
+                else:
+                    self.sound_game_over.play()
             pygame.mixer.music.play()
+        else:
+            self.Avantage()
+
+    def Avantage(self):
+        if self.player_one.quantiter > self.player_two.quantiter:
+            self.winner_text.SetText("Avantage Joueur Un (1)")
+        elif self.player_one.quantiter == self.player_two.quantiter:
+            self.winner_text.SetText("Egaliter")
+        else:
+            self.winner_text.SetText("Avantage Joueur Deux (2)")
+
+    def SetWinner(self):
+        if self.player_one.quantiter > self.player_two.quantiter:
+            self.winner_text.SetText("Joueur Un (1) Gagne")
+        elif self.player_one.quantiter == self.player_two.quantiter:
+            if len(self.player_one.possibiliter) > len(self.player_two.possibiliter):
+                self.winner_text.SetText("Joueur Un (1) Gagne")
+            elif len(self.player_one.possibiliter) < len(self.player_two.possibiliter):
+                self.winner_text.SetText("Joueur Deux (2) Gagne")
+            else:
+                self.winner_text.SetText("Egaliter")
+        else:
+            self.winner_text.SetText("Joueur Deux (2) Gagne")
 
     def Play(self, i, j):
+        self.play_position = [i, j]
         gain = gameLogics.Logics(int(i), int(j), self.map, self.actualPlayer, self.grid)
 
         if gain != [] and len(gain[0]) > 0:
@@ -181,7 +234,11 @@ class Level(Scene):
                 elif self.actualPlayer.flex_state == "finish":
                     self.actualPlayer.flex_state = "begin"
                     time.sleep(1)
-                    self.Play(int(self.actualPlayer.playPosition[0]), int(self.actualPlayer.playPosition[1]))
+                    if self.actualPlayer.playPosition != [None, None]:
+                        self.Play(int(self.actualPlayer.playPosition[0]), int(self.actualPlayer.playPosition[1]))
+                    else:
+                        self.Score()
+                        self.GameFinish()
     def Score(self):
         if self.actualPlayer.GetId() == self.player_one.GetId():
             self.scorePlayerOne.SetText(f"{self.actualPlayer.quantiter}")
@@ -247,6 +304,12 @@ class Level(Scene):
         self.coupPlayerTwo.transform.SetPosition(self.racio[0] - x - w - w1 - 20 + w3 + 10, y + h1 + 20)
         self.coupPlayerTwo.Render(self.game)
 
+        x = (-self.winner_text.transform.size[0] + self.racio[0])/2
+        hr = (self.racio[1] - self.size_grid_y*len(self.map[0]))/2
+        y = self.racio[1] - ((hr - self.winner_text.transform.size[1])/2)
+        self.winner_text.transform.SetPosition(x, y)
+        self.winner_text.Render(self.game)
+
         paire = True if len(self.map) > 0 and len(self.map[0]) % 2 == 0 else False
         for i in range(len(self.map)):
             for j in range(len(self.map[0])):
@@ -274,6 +337,10 @@ class Level(Scene):
                     texture = pygame.transform.smoothscale(texture, (int(self.size_grid_x - 4), int(self.size_grid_y - 4)))
 
                     self.game.screen.blit(texture, (xg + 2, yg + 2, self.size_grid_x, self.size_grid_y))
+
+                if i == self.play_position[0]  and j == self.play_position[1]:
+                    pygame.draw.rect(self.game.screen, (255, 255, 255),
+                                     (xg + 1, yg + 1, self.size_grid_x - 2, self.size_grid_y - 2), 1)
 
         if self.next_player == True and issubclass(type(self.actualPlayer), IA):
             self.next_player = False

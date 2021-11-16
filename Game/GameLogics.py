@@ -1,8 +1,8 @@
+import random
 
 
 class GameLogis:
     def Logics(self, n, m, map, player, grid):
-        #print([n, m])
         map_copy = map.copy()
         if 0 <= n < len(map_copy) and 0 <= m < len(map_copy[0]) and map_copy[n][m] == grid.GetId():
             heat = False
@@ -44,56 +44,114 @@ class GameLogis:
                         possibiliter.append([i, j])
         return possibiliter
 
-class Node:
-    def __init__(self, parent, data):
-        self.parent = parent
-        self.childs = []
-        self.data = data
-
-    def AddChild(self, child):
-        if type(child) == Node:
-            self.childs.append(child)
-
-    def IsLeaf(self):
-        if self.childs == []:
-            return True
-        return False
-
-    def __eq__(self, other):
-        return other.data == self.data
-
-    def __gt__(self, other):
-        return other.data < self.data
-
-    def __lt__(self, other):
-        return other.data > self.data
-
 def PlusInfini():
     return 1000
 
 def MoinInfini():
     return -1000
 
-def Sauvegarder():
-    pass
+def FonctionEvaluation(joueur, node, map, grid):
+    #return len(gameLogics.Logics(node[0], node[1], map, joueur, grid)[0])
+    q1 = joueur.quantiter
+    q2 = joueur.GetAdversaire().quantiter
+    g = len(gameLogics.Logics(node[0], node[1], map, joueur, grid)[0])
+    return q1 + g*2 - q2 - 1
 
-def Restaurer():
-    pass
+def GamePlay(player, nodes, nodes_a, node, map, grid):
+    valuation = gameLogics.Logics(node[0], node[1], map, player, grid)
 
-def FonctionEvaluation():
-    pass
+    for g in valuation[0]:
+        map[g[0]][g[1]] = player.GetId()
 
-def MiniMax(node, profondeur, maximiser):
-    if node.IsLeaf() or profondeur == 0:
-        return FonctionEvaluation()
+    player.quantiter += len(valuation[0])
+    player.GetAdversaire().quantiter -= (len(valuation[0]) - 1)
 
-    if maximiser:
-        max = None
-        for child in node.childs:
-            e = MiniMax(child, profondeur - 1, False)
-            if max == None:
-                max = e
-            else:
-                max = e if max < e else max
+    retirer = []
+    for p in valuation[1]:
+        if p in nodes_a:
+            r = True
+            for i in range(p[0] - 1, p[0] + 2):
+                for j in range(p[1] - 1, p[1] + 2):
+                    if 0 <= i < len(map) and 0 <= j < len(map[0]):
+                        if map[i][j] == player.GetAdversaire().GetId():
+                            r = False
+                            break
+            if r and not (p in retirer):
+                retirer.append(p)
+
+    nodes_new = nodes.copy()
+    for n in valuation[1]:
+        if not n in nodes_new:
+            nodes_new.append(n)
+    for n in valuation[0]:
+        if n in nodes_new:
+            nodes_new.remove(n)
+
+    nodes_a_new = nodes_a.copy()
+    for n in retirer:
+        if n in nodes_a_new:
+            nodes_a_new.remove(n)
+
+    return nodes_new, nodes_a_new
+
+def Gagner(joueur, map, nodes1, nodes2):
+    return True if (len(nodes1) <= 0 or len(nodes2) <= 0 and
+                    joueur.quantiter > joueur.GetAdversaire().quantiter) else False
+
+def Perdu(joueur, map, nodes1, nodes2):
+    return True if (len(nodes1) <= 0 or len(nodes2) <= 0 and
+                    joueur.quantiter < joueur.GetAdversaire().quantiter) else False
+
+def MatchNulle(joueur, map, nodes1, nodes2):
+    return True if (len(nodes1) <= 0 or len(nodes2) <= 0 and
+                    joueur.quantiter == joueur.GetAdversaire().quantiter) else False
+
+def MiniMaxi(joueur, nodes, nodes_a, node, map, profondeur, maximisation, grid):
+    if Gagner(joueur, map, nodes, nodes_a):
+        return PlusInfini()
+    if Perdu(joueur, map, nodes, nodes_a):
+        return MoinInfini()
+    if MatchNulle(joueur, map, nodes, nodes_a):
+        return 0
+
+    if profondeur == 0:
+        return FonctionEvaluation(joueur, node, map, grid)
+
+    evaluation = MoinInfini() if maximisation else PlusInfini()
+    map_copy = map.copy()
+
+    quantiter_une = joueur.quantiter
+    quantiter_deux = joueur.GetAdversaire().quantiter
+
+    nodes_, nodes_a_ = GamePlay(joueur, nodes, nodes_a, node, map_copy, grid)
+
+    for node in nodes_a_:
+        e = MiniMaxi(joueur.GetAdversaire(), nodes_a_, nodes_, node, map_copy, profondeur-1, not maximisation, grid)
+        if maximisation:
+            evaluation = e if e > evaluation else evaluation
+        else:
+            evaluation = e if e < evaluation else evaluation
+
+    joueur.quantiter = quantiter_une
+    joueur.GetAdversaire().quantiter = quantiter_deux
+
+    return evaluation
+
+def DecisionMiniMax(map, player, profondeur, grid):
+    maximisation = MoinInfini()
+    node_end = [None, None]
+    nodes = player.possibiliter
+    nodes_a = player.GetAdversaire().possibiliter
+
+    for node in nodes:
+        evaluation = MiniMaxi(player, nodes, nodes_a, node, map.copy(), profondeur, True, grid)
+        if evaluation > maximisation:
+            maximisation = evaluation
+            node_end = node
+        elif evaluation == maximisation and random.randint(0, 1) == 0:
+            node_end = node
+
+    return node_end
+
 
 gameLogics = GameLogis()
