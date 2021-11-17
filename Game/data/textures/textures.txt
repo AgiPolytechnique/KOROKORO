@@ -12,6 +12,9 @@ gameMulti[[[*]]]data/textures/MenuNouveauJeu/02.png
 gameMultiHover[[[*]]]data/textures/MenuNouveauJeu/02actif.png
 gameNouveauChoice[[[*]]]data/textures/MenuNouveauJeu/Nouvelle partie.png
 
+# icon
+icon_korokoro[[[*]]]data/textures/icon/Yo.jpg
+
 # Menu Difficulter
 gameFacile[[[*]]]data/textures/MenuDifficulter/Facile.png
 gameFacileHover[[[*]]]data/textures/MenuDifficulter/FacileActif.png

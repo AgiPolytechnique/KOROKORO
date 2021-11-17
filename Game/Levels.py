@@ -1,3 +1,4 @@
+import random
 import time
 
 import numpy as np
@@ -25,7 +26,7 @@ class Level(Scene):
                         or (issubclass(type(playerOne), Human) and issubclass(type(playerTwo), IA))
         self.grid = grid
 
-        self.actualPlayer = self.player_one
+        self.actualPlayer = self.player_one if random.randint(0, 1) == 0 else self.player_two
 
         #self.background = Background("bg_bouche2")
         self.background = Background("bg_mp")
@@ -88,8 +89,13 @@ class Level(Scene):
         self.Avantage()
 
         self.play_position = [None, None]
+        self.Possibiliter()
 
-        #self.ScreenUpdate([racio[0], racio[1]])
+    def StopSound(self):
+        self.sound_game_over.stop()
+        self.sound_game_win.stop()
+        self.sound_game_not_validate.stop()
+        self.sound_game_tchop.stop()
 
     def EventInput(self, event):
         if event.type == VIDEORESIZE:
@@ -99,6 +105,7 @@ class Level(Scene):
             if event.key == K_ESCAPE:
                 if self.game.GetScene("MENU_PRINCIPAL") != None:
                     pygame.mixer.music.set_volume(0.3)
+                    self.StopSound()
                     self.game.GetScene("MENU_PRINCIPAL").ScreenUpdate(self.racio)
                     self.game.SetActiveScene("MENU_PRINCIPAL")
 
@@ -114,6 +121,7 @@ class Level(Scene):
                 if event.key == K_r:
                     self.player_one.Reset()
                     self.player_two.Reset()
+                    self.StopSound()
                     self.game.NewLevel(self)
 
     def ScreenUpdate(self, racio):
@@ -149,7 +157,8 @@ class Level(Scene):
         self.coupPlayerTwo.SetScale2(sx, sy)
 
     def GameFinish(self):
-        if gameLogics.GameFinish(self.map, self.actualPlayer, self.grid):
+        if gameLogics.GameFinish(self.map, self.actualPlayer, self.grid) or\
+            gameLogics.GameFinish(self.map, self.actualPlayer.GetAdversaire(), self.grid):
             pygame.mixer.music.stop()
             self.isFinish = True
             self.SetWinner()

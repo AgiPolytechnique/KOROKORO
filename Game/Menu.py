@@ -23,6 +23,7 @@ class MenuPrincipal(Scene):
         self.boutonHelp.SetSize(428, 236)
         self.boutonHelp.SetScale(0.125, 0.125)
         self.boutonHelp.SetPosition(472, 391)
+        #self.boutonHelp.SetDeasable(True)
 
         self.boutonQuit = Bouton(normal=["quitNormal", None], hover=["quitHover", None],
                                  deasable=["quitDeasable", None], pressed=["quitNormal", self.Quit])
@@ -226,12 +227,14 @@ class MenuDifficulter(Scene):
         self.boutonMoyen.SetSize(608, 236)
         self.boutonMoyen.SetScale(0.125, 0.125)
         self.boutonMoyen.SetPosition((-self.boutonMoyen.GetSize()[0] + self.game.size[0])/2, 391 - 25)
+        #self.boutonMoyen.SetDeasable(True)
 
         self.boutonDifficile = Bouton(normal=["gameDifficile", None], hover=["gameDifficileHover", None],
                                  deasable=[None, None], pressed=["gameDifficileHover", self.Difficile])
         self.boutonDifficile.SetSize(769, 246)
         self.boutonDifficile.SetScale(0.125, 0.125)
         self.boutonDifficile.SetPosition((-self.boutonDifficile.GetSize()[0] + self.game.size[0])/2, 391 + 20)
+        #self.boutonDifficile.SetDeasable(True)
 
         self.nodes = []
         self.nodes.append(self.boutonFacile)

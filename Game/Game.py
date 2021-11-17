@@ -21,6 +21,7 @@ class Game:
         self.flags = RESIZABLE
         self.size = [960, 540]
         self.screen = pygame.display.set_mode(self.size, self.flags)
+        pygame.display.set_caption('Korokoro')
 
         # scene
         self.scenes = {}
@@ -28,6 +29,7 @@ class Game:
 
         # load texture
         textureManager.LoadFromFile("data/textures/textures.txt")
+        pygame.display.set_icon(textureManager.GetTexture("icon_korokoro"))
 
         self.background_sound = pygame.mixer.music.load("data/audio/musics/AUD-20211108-WA0013.mp3")
         pygame.mixer.music.set_volume(0.3)
