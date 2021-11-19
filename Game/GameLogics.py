@@ -144,7 +144,7 @@ def DecisionMiniMax(map, player, profondeur, grid):
     nodes_a = player.GetAdversaire().possibiliter
 
     for node in nodes:
-        evaluation = MiniMaxi(player, nodes, nodes_a, node, map.copy(), profondeur, True, grid)
+        evaluation = MiniMaxi(player, nodes, nodes_a, node, map.copy(), profondeur, False, grid)
         if evaluation > maximisation:
             maximisation = evaluation
             node_end = node
@@ -153,5 +153,76 @@ def DecisionMiniMax(map, player, profondeur, grid):
 
     return node_end
 
+def AlphaBeta(node, nodes, nodes_a, player, alpha, beta, maximisation, profondeur, map, grid):
+    if Gagner(player, map, nodes, nodes_a):
+        return PlusInfini()
+    if Perdu(player, map, nodes, nodes_a):
+        return MoinInfini()
+    if MatchNulle(player, map, nodes, nodes_a):
+        return 0
+
+    if profondeur == 0:
+        return FonctionEvaluation(player, node, map, grid)
+
+    alpha_, beta_ = alpha, beta
+
+    map_copy = map.copy()
+
+    quantiter_une = player.quantiter
+    quantiter_deux = player.GetAdversaire().quantiter
+
+    nodes_, nodes_a_ = GamePlay(player, nodes, nodes_a, node, map_copy, grid)
+
+    if maximisation:
+        max = MoinInfini()
+        for node in nodes_a_:
+            a = AlphaBeta(node, nodes_a_, nodes_, player.GetAdversaire(), alpha_, beta_,
+                          not maximisation, profondeur-1, map_copy, grid)
+
+            if a > max:
+                max = a
+            if max >= beta_:
+                player.quantiter = quantiter_une
+                player.GetAdversaire().quantiter = quantiter_deux
+                return max
+            if max > alpha_:
+                alpha_ = max
+        player.quantiter = quantiter_une
+        player.GetAdversaire().quantiter = quantiter_deux
+        return alpha_
+    else:
+        min = PlusInfini()
+        for node in nodes_a_:
+            b = AlphaBeta(node, nodes_a_, nodes_, player.GetAdversaire(), alpha_, beta_,
+                          not maximisation, profondeur-1, map_copy, grid)
+
+            if b < min:
+                min = b
+            if alpha_ >= min:
+                player.quantiter = quantiter_une
+                player.GetAdversaire().quantiter = quantiter_deux
+                return min
+            if min < beta_:
+                beta_ = min
+        player.quantiter = quantiter_une
+        player.GetAdversaire().quantiter = quantiter_deux
+        return beta_
+
+def DecisionAlphaBeta(map, player, profondeur, grid):
+    alpha = MoinInfini()
+
+    node_end = [None, None]
+    nodes = player.possibiliter
+    nodes_a = player.GetAdversaire().possibiliter
+
+    for node in nodes:
+        evaluation = AlphaBeta(node, nodes, nodes_a, player, alpha, PlusInfini(), False, profondeur, map, grid)
+        if evaluation > alpha:
+            alpha = evaluation
+            node_end = node
+        elif evaluation == alpha and random.randint(0, 1) == 0:
+            node_end = node
+
+    return node_end
 
 gameLogics = GameLogis()

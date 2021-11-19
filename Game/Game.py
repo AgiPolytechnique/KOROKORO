@@ -54,6 +54,7 @@ class Game:
     def NewLevel(self, level):
         p1 = level.player_one
         p2 = level.player_two
+
         g = level.grid
         r = level.racio
         l = len(level.map)

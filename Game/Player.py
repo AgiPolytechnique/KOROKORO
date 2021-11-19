@@ -3,7 +3,7 @@ import time
 
 import pygame
 
-from GameLogics import gameLogics, DecisionMiniMax
+from GameLogics import gameLogics, DecisionMiniMax, DecisionAlphaBeta
 
 
 class Entity:
@@ -81,6 +81,7 @@ class Player(Entity):
     def Reset(self):
         self.quantiter = 0
         self.nom_coup = 0
+        self.possibiliter = []
 
     def SetAdversair(self, adversaire):
         self.adversaire = adversaire
@@ -97,7 +98,20 @@ class Player(Entity):
 class Human(Player):
     def __init__(self, adversaire):
         super(Human, self).__init__(adversaire)
-        
+
+import threading
+class AlgoRun(threading.Thread):
+    def __init__(self, algo, **param):
+        threading.Thread.__init__(self)
+        self.algo = algo
+        self.param = param
+        self.position = [None, None]
+
+    def run(self):
+        self.position = self.algo(self.param["map"], self.param["player"], self.param["profondeur"], self.param["grid"])
+
+
+
 class IA(Player):
     def __init__(self, adversaire):
         super(IA, self).__init__(adversaire)
@@ -105,6 +119,11 @@ class IA(Player):
 
         self.flex_state = "begin"
 
+        self.playPosition = [None, None]
+        
+    def Reset(self):
+        super(IA, self).Reset()
+        self.flex_state = "begin"
         self.playPosition = [None, None]
 
     def SetProfondeur(self, profondeur):
@@ -122,7 +141,11 @@ class IA(Player):
 
     def Play(self, map, grid):
         begin_time = pygame.time.get_ticks()
-        self.playPosition = DecisionMiniMax(map, self, self.profondeur, grid)
+        algo = AlgoRun(DecisionMiniMax, map=map, player=self, profondeur=self.profondeur, grid=grid)
+        #algo = AlgoRun(DecisionAlphaBeta, map=map, player=self, profondeur=self.profondeur, grid=grid)
+        algo.run()
+        #self.playPosition = DecisionMiniMax(map, self, self.profondeur, grid)
+        self.playPosition = algo.position
         end_time = pygame.time.get_ticks()
         print("times reflexion : ", end_time - begin_time)
         #self.playPosition = self.glouton(map, grid)

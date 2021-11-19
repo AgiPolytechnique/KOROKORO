@@ -108,6 +108,12 @@ class Level(Scene):
                     self.StopSound()
                     self.game.GetScene("MENU_PRINCIPAL").ScreenUpdate(self.racio)
                     self.game.SetActiveScene("MENU_PRINCIPAL")
+            if event.type == KEYDOWN:
+                if event.key == K_r:
+                    self.player_one.Reset()
+                    self.player_two.Reset()
+                    self.StopSound()
+                    self.game.NewLevel(self)
 
         if self.isFinish == False:
             if issubclass(type(self.actualPlayer), Human):
@@ -116,13 +122,6 @@ class Level(Scene):
                     i = (event.pos[1] - self.gridPosition[1])//self.size_grid_y
                     self.Play(i, j)
                     self.next_player = True
-        else:
-            if event.type == KEYDOWN:
-                if event.key == K_r:
-                    self.player_one.Reset()
-                    self.player_two.Reset()
-                    self.StopSound()
-                    self.game.NewLevel(self)
 
     def ScreenUpdate(self, racio):
         sx = racio[0] / self.racio[0]
